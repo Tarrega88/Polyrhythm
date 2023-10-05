@@ -1,102 +1,208 @@
-const audioFolder = './audio';
+const audioFolder = "./audio";
+
 //try this later: https://freesound.org/docs/api/
-const playButton = document.querySelector("#play-button")
-const stopButton = document.querySelector("#stop-button")
-const bpmInput = document.querySelector("#bpm-input")
-const input1 = document.querySelector("#input-1")
-const input2 = document.querySelector("#input-2")
+const playButton = document.querySelector("#play-button");
+const stopButton = document.querySelector("#stop-button");
+const bpmInput = document.querySelector("#bpm-input");
+const allAudioFiles = [];
+const table0 = document.querySelector("#table-0")
+table0.style.width = '100%'
 
-//let slowestSound = Math.min(Number(input2.value), Number(input1.value))
-
+let inputArray = [];
 let audioArray = [];
+let timesToPlayArray = [];
+
+let tableRows = [];
+let tableCells = [];
+
+//fill allAudioFiles:
+for (let i = 0; i < 3; i ++) {
+  allAudioFiles.push(new Audio(`${audioFolder}/${i}.wav`))
+}
+
+let activeAudioFiles = [...allAudioFiles];
+
+for (let i = 0; i < 3; i++) {
+  inputArray.push(document.querySelector(`#input-${i}`));
+}
+
+for (let i = 0; i < inputArray.length; i ++) {
+  tableRows.push(`table-row-${i}`)
+}
+
+
+function createTableCells() {
+  table0.innerHTML = "";
+  for (let i = 0; i < inputArray.length; i ++) {
+    const row = table0.insertRow(i)
+    for (let j = 0; j < inputArray[i].value; j ++) {
+      const cell = row.insertCell(j);
+      cell.setAttribute("id", `row${i}cell${j}`);
+      cell.innerHTML = j + 1;
+      cell.style.display = "inline-block"
+       cell.style.width = `${90 / inputArray[i].value}%`
+    }
+  }
+}
+createTableCells();
+function findActiveAudio() {
+  for (let i = 0; i < inputArray.length; i ++) {
+    if (inputArray[i].value === 0) {
+      activeAudioFiles[i] = '';
+    }
+  }
+}
+
+let inputArrayValues = inputArray.map((e) => e.value).filter((e) => e > 0);
+const findGCD = (a, b) => (b == 0 ? a : findGCD(b, a % b));
+const findLCM = (a, b) => (a / findGCD(a, b)) * b;
+let rhythmGCD = (Math.max(...inputArrayValues), Math.min(...inputArrayValues));
+let rhythmLCM = (Math.max(...inputArrayValues), Math.min(...inputArrayValues));
+
+function findTheGCD() {
+  rhythmGCD = (Math.max(...inputArrayValues), Math.min(...inputArrayValues));
+  for (let i = 0; i < inputArrayValues.length; i++) {
+    rhythmGCD = findGCD(rhythmGCD, inputArrayValues[i]);
+  }
+}
+findTheGCD();
+
+function findTheLCM() {
+  rhythmLCM = (Math.max(...inputArrayValues), Math.min(...inputArrayValues));
+  for (let i = 0; i < inputArrayValues.length; i++) {
+    rhythmLCM = findLCM(rhythmLCM, inputArrayValues[i]);
+  }
+}
+findTheLCM();
+
 
 let playEnabled = false;
-let bpm = 60;
-let seconds = 1000 * 60 / bpm;
+let bpm = Number(bpmInput.value);
+let seconds = (1000 * 60) / bpm;
 let i = 0;
 
-const gcd = (a, b) => b == 0 ? a : gcd (b, a % b)
-const lcm = (a, b) =>  a / gcd (a, b) * b
-let gcdDefault = gcd(input2.value, input1.value);
-let lcmDefault = lcm(input2.value, input1.value);
-
-let timesToPlayLowest = lcmDefault / input1.value 
-let timesToPlayHighest = lcmDefault / input2.value;
-let totalArrayTime = seconds * Math.max(input1.value, input2.value);
-let elementTime = totalArrayTime / lcmDefault;
-
-
-function high() {
-  const audio2 = new Audio(`${audioFolder}/2.wav`)
-  audio2.play();
-}
-
-function low() {
-  const audio1 = new Audio(`${audioFolder}/1.wav`)
-  audio1.play();
-}
-
-function both() {
-  const audio1 = new Audio(`${audioFolder}/1.wav`)
-  const audio2 = new Audio(`${audioFolder}/2.wav`)
-  audio1.play();
-  audio2.play();
-}
-
-playButton.addEventListener("click", function() {
-  if (input2.value > 0 && input1.value > 0) {
-  playEnabled = true;
-    loopAudio();
+function findTimesToPlay() {
+  timesToPlayArray = [];
+  for (let i = 0; i < inputArray.length; i++) {
+    if (inputArray[i].value > 0) {
+    timesToPlayArray.push(rhythmLCM / inputArray[i].value);
+    } else {
+      timesToPlayArray.push(0)
+    }
   }
-})
+}
+findTimesToPlay();
 
-stopButton.addEventListener("click", function() {
+let totalArrayTime = seconds * 4;
+let elementTime = totalArrayTime / rhythmLCM;
+
+function playAudio(audio) {
+  for (const sound of audio) {
+    sound.play();
+  }
+}
+
+playButton.addEventListener("click", function () {
+  setValues();
+  playEnabled = playEnabled === true ? false : true;
+    loopAudio();
+});
+
+stopButton.addEventListener("click", function () {
   playEnabled = false;
   i = 0;
-})
+});
 
 function setValues() {
-  bpm = Number(bpmInput.value)
+  bpm = Number(bpmInput.value);
   if (bpm > 300) bpm = 300;
-  seconds = 1000 * 60 / bpm;
-  gcdDefault = gcd(input2.value, input1.value)
-  lcmDefault = lcm(input2.value, input1.value)
-  timesToPlayHighest = lcmDefault / input2.value 
-  timesToPlayLowest = lcmDefault / input1.value
-  totalArrayTime = seconds * Math.max(input1.value, input2.value);
-  elementTime = totalArrayTime / lcmDefault;
+  seconds = (1000 * 60) / bpm;
+  inputArrayValues = inputArray.map((e) => e.value).filter((e) => e > 0);
+  findTheGCD();
+  findTheLCM();
+  findTimesToPlay();
+  totalArrayTime = seconds * 4;
+  elementTime = totalArrayTime / rhythmLCM;
+  createTableCells();
+  findActiveAudio();
+  logAll();
 }
 
-bpmInput.addEventListener("keyup", function() {
-  setValues()
-  // bpm = Number(bpmInput.value)
-  // if (bpm > 280) bpm = 280;
-  // seconds = 1000 * 60 / bpm;
-})
+function logAll() {
+  console.log("Table Cells:")
+  console.log(tableCells)
+  console.log("Input Array:")
+  console.log(inputArray)
+  console.log("Input Values:");
+  console.log(...inputArray.map((e) => e.value));
+  console.log("inputArrayValues:")
+  console.log(inputArrayValues)
+  console.log(`rhythmGCD: ${rhythmGCD}`);
+  console.log(`rhythmLCM: ${rhythmLCM}`);
+  console.log(`timesToPlayArray: ${timesToPlayArray}`);
+}
+logAll();
 
-input2.addEventListener("keyup", function() {
-  setValues()
-})
+bpmInput.addEventListener("keyup", function () {
+  setValues();
+});
 
-input1.addEventListener("keyup", function() {
-  //slowestSound = Math.min(Number(input2.value), Number(input1.value))
-  setValues()
-})
+for (let i = 0; i < inputArray.length; i++) {
+  inputArray[i].addEventListener("keyup", function () {
+    setValues();
+  });
+}
 
+// function loopAudio() {
+
+//   if (playEnabled) {
+//     audioArray = [];
+
+//     for (let j = 0; j < timesToPlayArray.length; j++) {
+//       if (i % timesToPlayArray[j] === 0) {
+//         const cell = document.querySelector(`#row${j}cell${0}`)
+//         audioArray.push(activeAudioFiles[j].cloneNode());
+//         cell.style.backgroundColor = 'blue'
+//       } else {
+//         const cell = document.querySelector(`#row${j}cell${0}`)
+//         cell.style.backgroundColor = 'white'
+//       }
+//     }
+//     playAudio(audioArray);
+//     setTimeout(function () {
+//       i++;
+//       loopAudio();
+//     }, elementTime);
+//   }
+// }
 function loopAudio() {
-  switch(true) {
-    case i % timesToPlayHighest === 0 && i % timesToPlayLowest === 0 : both(); console.log("BOTH")
-    break;
-    case i % timesToPlayHighest === 0 : high(); console.log("HIGH")
-    break;
-    case i % timesToPlayLowest === 0 : low(); console.log("LOW")
-    break;
-    // default: console.log("silence : ]")
-  }
   if (playEnabled) {
-      setTimeout(function() {
-        i ++;
-        loopAudio();
-      }, elementTime)
-    }
+      audioArray = [];
+
+      for (let j = 0; j < timesToPlayArray.length; j++) {
+          for (let k = 0; k < inputArray[j].value; k++) {
+              const resetCell = document.querySelector(`#row${j}cell${k}`);
+              if (resetCell) {
+                  resetCell.style.backgroundColor = 'white';
+              }
+          }
+        
+          let currentCellIndex = Math.floor(i / timesToPlayArray[j]) % inputArray[j].value;
+
+          if (i % timesToPlayArray[j] === 0) {
+              const cell = document.querySelector(`#row${j}cell${currentCellIndex}`);
+              if (cell) {
+                  audioArray.push(activeAudioFiles[j].cloneNode());
+                  cell.style.backgroundColor = 'blue';
+              }
+          }
+      }
+
+      playAudio(audioArray);
+
+      setTimeout(function () {
+          i++;
+          loopAudio();
+      }, elementTime);
+  }
 }

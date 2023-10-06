@@ -8,6 +8,7 @@ const table0 = document.querySelector("#table-0")
 const backgroundColor = "white"
 const mouseOverColor = "yellow"
 const lightupColor = "blue"
+const selectedColor = "lightblue"
 
 table0.style.width = '90%'
 
@@ -19,6 +20,7 @@ let timesToPlayArray = [];
 
 let tableRows = [];
 let tableCells = [];
+let additionalMarks = [];
 
 //fill allAudioFiles:
 for (let i = 0; i < 3; i++) {
@@ -172,7 +174,6 @@ function findCells() {
 }
 findCells();
 
-let additionalMarks = [];
 function addCellEventListeners() {
   for (const e of allCells) {
     e.addEventListener("click", function () {
@@ -188,7 +189,7 @@ function addCellEventListeners() {
       e.style.backgroundColor = mouseOverColor;
     })
     e.addEventListener("mouseout", function () {
-      e.style.backgroundColor = backgroundColor;
+      e.style.backgroundColor = additionalMarks.includes(e.attributes[0].textContent) ? "lightblue" : backgroundColor;
     })
   }
 }
@@ -210,7 +211,7 @@ function loopAudio() {
       }
 
       if (additionalMarks.includes(`row${j}cell${cellCounter}`)) {
-        playCell = playCell === true ? false : true;
+        playCell = true;
       }
 
         const cell = document.querySelector(`#row${j}cell${cellCounter}`);

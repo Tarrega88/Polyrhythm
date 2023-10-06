@@ -70,7 +70,7 @@ function createTableCells() {
 
       if (inputArray[i].value > 0 && j % (rhythmLCM / inputArray[i].value) === 0) {
         cell.innerHTML = numberCounter;
-        numberCounter++;
+                numberCounter++;
       } else {
         cell.innerHTML = "_"
       }
@@ -177,9 +177,9 @@ function addCellEventListeners() {
   for (const e of allCells) {
     e.addEventListener("click", function () {
       const text = e.attributes[0].textContent;
-      if (!additionalMarks.includes(text)) {
+             if (!additionalMarks.includes(text)) {
         additionalMarks.push(text);
-      } else {
+              } else {
         const removalIndex = additionalMarks.findIndex(e => e === text);
         additionalMarks.splice(removalIndex, 1)
       }

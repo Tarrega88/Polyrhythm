@@ -8,7 +8,6 @@ const table0 = document.querySelector("#table-0")
 const backgroundColor = "white"
 const mouseOverColor = "yellow"
 const lightupColor = "blue"
-const selectedColor = "lightblue"
 
 table0.style.width = '90%'
 
@@ -20,7 +19,6 @@ let timesToPlayArray = [];
 
 let tableRows = [];
 let tableCells = [];
-let additionalMarks = [];
 
 //fill allAudioFiles:
 for (let i = 0; i < 3; i++) {
@@ -72,7 +70,7 @@ function createTableCells() {
 
       if (inputArray[i].value > 0 && j % (rhythmLCM / inputArray[i].value) === 0) {
         cell.innerHTML = numberCounter;
-                numberCounter++;
+        numberCounter++;
       } else {
         cell.innerHTML = "_"
       }
@@ -174,13 +172,14 @@ function findCells() {
 }
 findCells();
 
+let additionalMarks = [];
 function addCellEventListeners() {
   for (const e of allCells) {
     e.addEventListener("click", function () {
       const text = e.attributes[0].textContent;
-             if (!additionalMarks.includes(text)) {
+      if (!additionalMarks.includes(text)) {
         additionalMarks.push(text);
-              } else {
+      } else {
         const removalIndex = additionalMarks.findIndex(e => e === text);
         additionalMarks.splice(removalIndex, 1)
       }
@@ -189,7 +188,7 @@ function addCellEventListeners() {
       e.style.backgroundColor = mouseOverColor;
     })
     e.addEventListener("mouseout", function () {
-      e.style.backgroundColor = additionalMarks.includes(e.attributes[0].textContent) ? "lightblue" : backgroundColor;
+      e.style.backgroundColor = backgroundColor;
     })
   }
 }
@@ -211,7 +210,7 @@ function loopAudio() {
       }
 
       if (additionalMarks.includes(`row${j}cell${cellCounter}`)) {
-        playCell = true;
+        playCell = playCell === true ? false : true;
       }
 
         const cell = document.querySelector(`#row${j}cell${cellCounter}`);

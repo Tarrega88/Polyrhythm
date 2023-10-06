@@ -1,14 +1,15 @@
 const audioFolder = "./audio";
-
-//try this later: https://freesound.org/docs/api/
 const playButton = document.querySelector("#play-button");
 const stopButton = document.querySelector("#stop-button");
 const bpmInput = document.querySelector("#bpm-input");
 const allAudioFiles = [];
 const table0 = document.querySelector("#table-0")
-table0.style.width = '100%'
+
+table0.style.width = '90%'
 
 let inputArray = [];
+let lastLitCell = Array(inputArray.length).fill(null);
+
 let audioArray = [];
 let timesToPlayArray = [];
 
@@ -30,34 +31,11 @@ for (let i = 0; i < inputArray.length; i ++) {
   tableRows.push(`table-row-${i}`)
 }
 
-
-function createTableCells() {
-  table0.innerHTML = "";
-  for (let i = 0; i < inputArray.length; i ++) {
-    const row = table0.insertRow(i)
-    for (let j = 0; j < inputArray[i].value; j ++) {
-      const cell = row.insertCell(j);
-      cell.setAttribute("id", `row${i}cell${j}`);
-      cell.innerHTML = j + 1;
-      cell.style.display = "inline-block"
-       cell.style.width = `${90 / inputArray[i].value}%`
-    }
-  }
-}
-createTableCells();
-function findActiveAudio() {
-  for (let i = 0; i < inputArray.length; i ++) {
-    if (inputArray[i].value === 0) {
-      activeAudioFiles[i] = '';
-    }
-  }
-}
-
 let inputArrayValues = inputArray.map((e) => e.value).filter((e) => e > 0);
 const findGCD = (a, b) => (b == 0 ? a : findGCD(b, a % b));
 const findLCM = (a, b) => (a / findGCD(a, b)) * b;
-let rhythmGCD = (Math.max(...inputArrayValues), Math.min(...inputArrayValues));
-let rhythmLCM = (Math.max(...inputArrayValues), Math.min(...inputArrayValues));
+let rhythmGCD = Number(Math.max(...inputArrayValues), Math.min(...inputArrayValues));
+let rhythmLCM = Number(Math.max(...inputArrayValues), Math.min(...inputArrayValues));
 
 function findTheGCD() {
   rhythmGCD = (Math.max(...inputArrayValues), Math.min(...inputArrayValues));
@@ -74,6 +52,39 @@ function findTheLCM() {
   }
 }
 findTheLCM();
+
+function createTableCells() {
+  table0.innerHTML = "";
+
+  for (let i = 0; i < inputArray.length; i++) {
+    const row = table0.insertRow(i);
+    let numberCounter = 1;
+
+    for (let j = 0; j < rhythmLCM; j++) {
+      const cell = row.insertCell(j);
+      cell.setAttribute("id", `row${i}cell${j}`);
+
+      if (j % (rhythmLCM / inputArray[i].value) === 0) {
+        cell.innerHTML = numberCounter;
+        numberCounter++;
+      }
+
+      cell.style.display = "inline-block";
+      cell.style.width = `${Math.floor(100 / rhythmLCM)}%`;
+    }
+  }
+}
+
+
+createTableCells();
+
+function findActiveAudio() {
+  for (let i = 0; i < inputArray.length; i ++) {
+    if (inputArray[i].value === 0) {
+      activeAudioFiles[i] = '';
+    }
+  }
+}
 
 
 let playEnabled = false;
@@ -129,17 +140,6 @@ function setValues() {
 }
 
 function logAll() {
-  console.log("Table Cells:")
-  console.log(tableCells)
-  console.log("Input Array:")
-  console.log(inputArray)
-  console.log("Input Values:");
-  console.log(...inputArray.map((e) => e.value));
-  console.log("inputArrayValues:")
-  console.log(inputArrayValues)
-  console.log(`rhythmGCD: ${rhythmGCD}`);
-  console.log(`rhythmLCM: ${rhythmLCM}`);
-  console.log(`timesToPlayArray: ${timesToPlayArray}`);
 }
 logAll();
 
@@ -153,56 +153,30 @@ for (let i = 0; i < inputArray.length; i++) {
   });
 }
 
-// function loopAudio() {
-
-//   if (playEnabled) {
-//     audioArray = [];
-
-//     for (let j = 0; j < timesToPlayArray.length; j++) {
-//       if (i % timesToPlayArray[j] === 0) {
-//         const cell = document.querySelector(`#row${j}cell${0}`)
-//         audioArray.push(activeAudioFiles[j].cloneNode());
-//         cell.style.backgroundColor = 'blue'
-//       } else {
-//         const cell = document.querySelector(`#row${j}cell${0}`)
-//         cell.style.backgroundColor = 'white'
-//       }
-//     }
-//     playAudio(audioArray);
-//     setTimeout(function () {
-//       i++;
-//       loopAudio();
-//     }, elementTime);
-//   }
-// }
 function loopAudio() {
   if (playEnabled) {
-      audioArray = [];
+    audioArray = [];
 
-      for (let j = 0; j < timesToPlayArray.length; j++) {
-          for (let k = 0; k < inputArray[j].value; k++) {
-              const resetCell = document.querySelector(`#row${j}cell${k}`);
-              if (resetCell) {
-                  resetCell.style.backgroundColor = 'white';
-              }
-          }
-        
-          let currentCellIndex = Math.floor(i / timesToPlayArray[j]) % inputArray[j].value;
-
-          if (i % timesToPlayArray[j] === 0) {
-              const cell = document.querySelector(`#row${j}cell${currentCellIndex}`);
-              if (cell) {
-                  audioArray.push(activeAudioFiles[j].cloneNode());
-                  cell.style.backgroundColor = 'blue';
-              }
-          }
+    for (let j = 0; j < timesToPlayArray.length; j++) {
+      if (lastLitCell[j]) {
+        lastLitCell[j].style.backgroundColor = 'white';
+        lastLitCell[j] = null;
       }
 
-      playAudio(audioArray);
+      if (i % timesToPlayArray[j] === 0) {
+        const cell = document.querySelector(`#row${j}cell${i % rhythmLCM}`);
+        if (cell && cell.innerHTML > 0) {
+          audioArray.push(activeAudioFiles[j].cloneNode());
+          cell.style.backgroundColor = 'blue';
+          lastLitCell[j] = cell;
+        }
+      }
+    }
 
-      setTimeout(function () {
-          i++;
-          loopAudio();
-      }, elementTime);
+    playAudio(audioArray);
+    setTimeout(function () {
+      i++;
+      loopAudio();
+    }, elementTime);
   }
 }

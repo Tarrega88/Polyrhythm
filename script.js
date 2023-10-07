@@ -248,9 +248,7 @@ function loopAudio() {
 
       const cell = document.querySelector(`#${cellName}`);
       if (playCell) {
-        if (cell.style.backgroundColor !== mouseOverColor) {
           cell.style.backgroundColor = lightupColor;
-        }
         let audioClone = activeAudioFiles[j].cloneNode();
 
         audioArray.push(audioClone);

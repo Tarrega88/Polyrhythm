@@ -3,26 +3,26 @@ const playButton = document.querySelector("#play-button");
 const stopButton = document.querySelector("#stop-button");
 const bpmInput = document.querySelector("#bpm-input");
 const allAudioFiles = [];
-const table0 = document.querySelector("#table-0")
+const table0 = document.querySelector("#table-0");
 
-const backgroundColor = "white"
-const mouseOverColor = "yellow"
-const lightupColor = "blue"
+const backgroundColor = "white";
+const lightupColor = "blue";
+const selectedColor = "lightblue";
 
-table0.style.width = '90%'
+table0.style.width = "90%";
 
 let inputArray = [];
-let lastLitCell = Array(inputArray.length).fill(null);
 
 let audioArray = [];
 let timesToPlayArray = [];
 
 let tableRows = [];
 let tableCells = [];
+let additionalMarks = [];
+let previouslyLitCells = [];
 
-//fill allAudioFiles:
 for (let i = 0; i < 3; i++) {
-  allAudioFiles.push(new Audio(`${audioFolder}/${i}.wav`))
+  allAudioFiles.push(new Audio(`${audioFolder}/${i}.wav`));
 }
 
 let activeAudioFiles = [...allAudioFiles];
@@ -32,14 +32,20 @@ for (let i = 0; i < 3; i++) {
 }
 
 for (let i = 0; i < inputArray.length; i++) {
-  tableRows.push(`table-row-${i}`)
+  tableRows.push(`table-row-${i}`);
 }
 
 let inputArrayValues = inputArray.map((e) => e.value).filter((e) => e > 0);
 const findGCD = (a, b) => (b == 0 ? a : findGCD(b, a % b));
 const findLCM = (a, b) => (a / findGCD(a, b)) * b;
-let rhythmGCD = Number(Math.max(...inputArrayValues), Math.min(...inputArrayValues));
-let rhythmLCM = Number(Math.max(...inputArrayValues), Math.min(...inputArrayValues));
+let rhythmGCD = Number(
+  Math.max(...inputArrayValues),
+  Math.min(...inputArrayValues)
+);
+let rhythmLCM = Number(
+  Math.max(...inputArrayValues),
+  Math.min(...inputArrayValues)
+);
 
 function findTheGCD() {
   rhythmGCD = (Math.max(...inputArrayValues), Math.min(...inputArrayValues));
@@ -68,26 +74,29 @@ function createTableCells() {
       const cell = row.insertCell(j);
       cell.setAttribute("id", `row${i}cell${j}`);
 
-      if (inputArray[i].value > 0 && j % (rhythmLCM / inputArray[i].value) === 0) {
+      if (
+        inputArray[i].value > 0 &&
+        j % (rhythmLCM / inputArray[i].value) === 0
+      ) {
         cell.innerHTML = numberCounter;
+        additionalMarks.push(`row${i}cell${j}`);
         numberCounter++;
       } else {
-        cell.innerHTML = "_"
+        cell.innerHTML = "_";
       }
 
       cell.style.display = "inline-block";
-      cell.style.width = `${Math.floor(100 / rhythmLCM)}%`;
+      cell.style.width = `${Math.floor(90 / rhythmLCM)}%`;
     }
   }
 }
-
 
 createTableCells();
 
 function findActiveAudio() {
   for (let i = 0; i < inputArray.length; i++) {
     if (inputArray[i].value === 0) {
-      activeAudioFiles[i] = '';
+      activeAudioFiles[i] = "";
     }
   }
 }
@@ -102,7 +111,7 @@ function findTimesToPlay() {
     if (inputArray[i].value > 0) {
       timesToPlayArray.push(rhythmLCM / inputArray[i].value);
     } else {
-      timesToPlayArray.push(0)
+      timesToPlayArray.push(0);
     }
   }
 }
@@ -118,19 +127,22 @@ function playAudio(audio) {
 }
 
 playButton.addEventListener("click", function () {
+  // additionalMarks = [];
   setValues();
   playEnabled = playEnabled === true ? false : true;
+  cellCounter = 0;
   loopAudio();
 });
 
 stopButton.addEventListener("click", function () {
   setValues();
   playEnabled = false;
-  additionalMarks = [];
+  // additionalMarks = [];
   cellCounter = 0;
 });
 
 function setValues() {
+  additionalMarks = [];
   bpm = Number(bpmInput.value);
   if (bpm > 300) bpm = 300;
   seconds = (1000 * 60) / bpm;
@@ -143,13 +155,9 @@ function setValues() {
   createTableCells();
   findActiveAudio();
   findCells();
+  addOutline();
   addCellEventListeners();
-  logAll();
 }
-
-function logAll() {
-}
-logAll();
 
 bpmInput.addEventListener("keyup", function () {
   setValues();
@@ -166,59 +174,87 @@ function findCells() {
   allCells = [];
   for (let i = 0; i < inputArrayValues.length; i++) {
     for (let j = 0; j < rhythmLCM; j++) {
-      allCells.push(document.querySelector(`#row${i}cell${j % rhythmLCM}`))
+      allCells.push(document.querySelector(`#row${i}cell${j % rhythmLCM}`));
     }
   }
 }
 findCells();
 
-let additionalMarks = [];
+function addOutline() {
+  for (const cell of allCells) {
+    cell.style.border = "solid 2px white";
+    cell.style.borderWidth = "medium"
+  }
+}
+
+addOutline();
+
 function addCellEventListeners() {
   for (const e of allCells) {
     e.addEventListener("click", function () {
       const text = e.attributes[0].textContent;
       if (!additionalMarks.includes(text)) {
         additionalMarks.push(text);
+        e.style.backgroundColor = selectedColor;
+        e.originalColor = selectedColor;
       } else {
-        const removalIndex = additionalMarks.findIndex(e => e === text);
-        additionalMarks.splice(removalIndex, 1)
+        const removalIndex = additionalMarks.findIndex((e) => e === text);
+        additionalMarks.splice(removalIndex, 1);
+        e.style.backgroundColor = backgroundColor;
+        e.originalColor = backgroundColor;
       }
-    })
+    });
+
     e.addEventListener("mouseover", function () {
-      e.style.backgroundColor = mouseOverColor;
-    })
+      e.style.border = "solid 2px black";
+      e.style.borderWidth = "medium"
+    });
+
     e.addEventListener("mouseout", function () {
-      e.style.backgroundColor = backgroundColor;
-    })
+      e.style.border = "solid 2px white"
+      e.style.borderWidth = "medium"
+    });
   }
 }
 addCellEventListeners();
 
 let cellCounter = 0;
+
+function updateColors() {
+  for (let k = 0; k < allCells.length; k++) {
+    const cell = document.querySelector(`#${allCells[k].id}`);
+    if (additionalMarks.includes(cell.id)) {
+      cell.style.backgroundColor = selectedColor;
+    } else {
+      cell.style.backgroundColor = backgroundColor;
+    }
+  }
+}
+updateColors();
+
 function loopAudio() {
   if (playEnabled) {
     audioArray = [];
 
+    updateColors();
+
     for (let j = 0; j < timesToPlayArray.length; j++) {
-      if (lastLitCell[j]) {
-        lastLitCell[j].style.backgroundColor = backgroundColor;
-        lastLitCell[j] = null;
-      }
       let playCell = false;
-      if (cellCounter % timesToPlayArray[j] === 0) {
+      const cellName = `row${j}cell${cellCounter}`;
+
+      if (additionalMarks.includes(cellName)) {
         playCell = true;
       }
 
-      if (additionalMarks.includes(`row${j}cell${cellCounter}`)) {
-        playCell = playCell === true ? false : true;
-      }
-
-        const cell = document.querySelector(`#row${j}cell${cellCounter}`);
-        if (playCell) {
-          audioArray.push(activeAudioFiles[j].cloneNode());
+      const cell = document.querySelector(`#${cellName}`);
+      if (playCell) {
+        if (cell.style.backgroundColor !== mouseOverColor) {
           cell.style.backgroundColor = lightupColor;
-          lastLitCell[j] = cell;
         }
+        let audioClone = activeAudioFiles[j].cloneNode();
+
+        audioArray.push(audioClone);
+      }
     }
 
     playAudio(audioArray);

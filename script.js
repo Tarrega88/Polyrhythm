@@ -2,12 +2,18 @@ const audioFolder = "./audio";
 const playButton = document.querySelector("#play-button");
 const stopButton = document.querySelector("#stop-button");
 const bpmInput = document.querySelector("#bpm-input");
-const allAudioFiles = [];
+let allAudioFiles = [];
 const table0 = document.querySelector("#table-0");
 
 const backgroundColor = "white";
 const lightupColor = "blue";
 const selectedColor = "lightblue";
+
+const maxInstruments = 4;
+const minInstruments = 1;
+
+const numOfInstrumentsSelector = document.querySelector("#number-of-instruments");
+let numberOfInstruments = Number(numOfInstrumentsSelector.value);
 
 table0.style.width = "90%";
 
@@ -16,24 +22,65 @@ let inputArray = [];
 let audioArray = [];
 let timesToPlayArray = [];
 
-let tableRows = [];
-let tableCells = [];
 let additionalMarks = [];
-let previouslyLitCells = [];
+let activeAudioFiles = [];
+let allCells = [];
 
-for (let i = 0; i < 3; i++) {
+
+function prepAudioArray() {
+  allAudioFiles = [];
+for (let i = 0; i < numberOfInstruments; i++) {
   allAudioFiles.push(new Audio(`${audioFolder}/${i}.wav`));
 }
+activeAudioFiles = [...allAudioFiles];
+}
+prepAudioArray();
 
-let activeAudioFiles = [...allAudioFiles];
 
-for (let i = 0; i < 3; i++) {
+function createInputs() {
+  inputArray = [];
+  const parent = document.getElementById("p1");
+  parent.innerHTML = 'Poly Rhythm: ';
+for (let i = 0; i < numberOfInstruments; i++) {
+  const input = document.createElement("input");
+  input.setAttribute("id", `input-${i}`)
+  let valueSet = 1;
+  switch (i) {
+    case 0: valueSet = 4;
+    break;
+    case 1: valueSet = 3;
+    break;
+    case 2: valueSet = 6;
+    break;
+    default: valueSet = 1;
+  }
+  input.setAttribute("value", valueSet)
+  console.log(input)
+  parent.appendChild(input);
   inputArray.push(document.querySelector(`#input-${i}`));
 }
-
-for (let i = 0; i < inputArray.length; i++) {
-  tableRows.push(`table-row-${i}`);
 }
+createInputs();
+
+numOfInstrumentsSelector.addEventListener("change", function() {
+  numberOfInstruments = numOfInstrumentsSelector.value;
+  // if (numberOfInstruments)
+  createInputs();
+  setValues()
+  // createTableCells();
+  prepAudioArray();
+  // updateColors();
+})
+
+numOfInstrumentsSelector.addEventListener("keyup", function() {
+  numberOfInstruments = numOfInstrumentsSelector.value;
+  createInputs();
+  setValues()
+  // createTableCells();
+  prepAudioArray();
+  // updateColors();
+})
+
 
 let inputArrayValues = inputArray.map((e) => e.value).filter((e) => e > 0);
 const findGCD = (a, b) => (b == 0 ? a : findGCD(b, a % b));
@@ -46,6 +93,12 @@ let rhythmLCM = Number(
   Math.max(...inputArrayValues),
   Math.min(...inputArrayValues)
 );
+
+function determineNumberOfInstruments() {
+  numberOfInstruments = numOfInstrumentsSelector.value;
+  if (numberOfInstruments < minInstruments) numberOfInstruments = minInstruments;
+  if (numberOfInstruments > maxInstruments) numberOfInstruments = maxInstruments;
+}
 
 function findTheGCD() {
   rhythmGCD = (Math.max(...inputArrayValues), Math.min(...inputArrayValues));
@@ -157,6 +210,7 @@ function setValues() {
   findCells();
   addOutline();
   addCellEventListeners();
+  updateColors();
 }
 
 bpmInput.addEventListener("keyup", function () {
@@ -169,7 +223,6 @@ for (let i = 0; i < inputArray.length; i++) {
   });
 }
 
-let allCells = [];
 function findCells() {
   allCells = [];
   for (let i = 0; i < inputArrayValues.length; i++) {

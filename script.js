@@ -43,6 +43,7 @@ function createInputs() {
   parent.innerHTML = 'Poly Rhythm: ';
 for (let i = 0; i < numberOfInstruments; i++) {
   const input = document.createElement("input");
+  input.setAttribute("type", "number")
   input.setAttribute("id", `input-${i}`)
   let valueSet = 1;
   switch (i) {
@@ -214,7 +215,9 @@ function setValues() {
 }
 
 bpmInput.addEventListener("keyup", function () {
+  playEnabled = false;
   setValues();
+  playEnabled = true;
 });
 
 for (let i = 0; i < inputArray.length; i++) {
